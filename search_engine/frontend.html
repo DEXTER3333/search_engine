@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Moteur de Recherche IA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .results-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .result-url {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+
+        .result-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .similarity-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            color: #666;
+        }
+
+        .examples {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .example-chip {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .example-chip:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 Moteur de Recherche IA</h1>
+            <p class="subtitle">Recherche sémantique intelligente</p>
+        </header>
+
+        <div class="search-box">
+            <div class="search-input-container">
+                <input type="text" id="searchInput" placeholder="Entrez votre recherche..." />
+                <button class="btn btn-primary" id="searchBtn">Rechercher</button>
+            </div>
+
+            <div class="examples">
+                <div class="stat-label">💡 Exemples de recherche :</div>
+                <div style="margin-top: 10px;">
+                    <span class="example-chip" onclick="searchExample('machine learning')">Machine Learning</span>
+                    <span class="example-chip" onclick="searchExample('python programming')">Python Programming</span>
+                    <span class="example-chip" onclick="searchExample('artificial intelligence')">Intelligence Artificielle</span>
+                    <span class="example-chip" onclick="searchExample('web development')">Développement Web</span>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">Résultats</div>
+                    <div class="stat-value" id="resultsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Temps</div>
+                    <div class="stat-value" id="queryTime">0s</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pages</div>
+                    <div class="stat-value" id="totalPages">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingDiv" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <div>Recherche en cours...</div>
+        </div>
+
+        <div id="resultsDiv" class="results-container"></div>
+    </div>
+
+    <script>
+        // Charger les stats au démarrage
+        loadStats();
+
+        // Recherche en appuyant sur Entrée
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        // Recherche en cliquant sur le bouton
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+
+        function searchExample(query) {
+            document.getElementById('searchInput').value = query;
+            performSearch();
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/stats');
+                const data = await response.json();
+                document.getElementById('totalPages').textContent = data.total_pages || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            
+            if (!query) {
+                alert('Veuillez entrer une recherche');
+                return;
+            }
+
+            const loadingDiv = document.getElementById('loadingDiv');
+            const resultsDiv = document.getElementById('resultsDiv');
+            const searchBtn = document.getElementById('searchBtn');
+
+            loadingDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        top_k: 20,
+                        threshold: 0.25
+                    })
+                });
+
+                if (!response.ok) throw new Error('Erreur API');
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                resultsDiv.innerHTML = `
+                    <div class="no-results">
+                        <h2>⚠️ Erreur de connexion</h2>
+                        <p>Impossible de se connecter à l'API</p>
+                    </div>
+                `;
+            } finally {
+                loadingDiv.style.display = 'none';
+                searchBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('resultsDiv');
+            document.getElementById('resultsCount').textContent = data.count || 0;
+            document.getElementById('queryTime').textContent = `${data.query_time || 0}s`;
+
+            if (!data.results || data.results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="no-results">
+                        <h2>🔍 Aucun résultat</h2>
+                        <p>Essayez une autre recherche</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsDiv.innerHTML = data.results.map(result => `
+                <div class="result-card">
+                    <div class="result-title">${escapeHtml(result.title || 'Sans titre')}</div>
+                    <a href="${result.url}" target="_blank" class="result-url">${result.url}</a>
+                    <span class="similarity-badge">Pertinence: ${(result.similarity * 100).toFixed(1)}%</span>
+                    <p class="result-description">${escapeHtml(result.description || 'Pas de description')}</p>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
