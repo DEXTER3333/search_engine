@@ -1,0 +1,13 @@
+numpy
+pydantic
+requests
+torch
+torchvision
+torchaudio
+transformers
+sentence-transformers
+scikit-learn
+fastapi
+uvicorn
+gradio
+scrapy

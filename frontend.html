@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Moteur de Recherche ML/DL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .mode-selector {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .mode-selector-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .mode-btn:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .mode-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            font-weight: 700;
+        }
+
+        .mode-title {
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .mode-icon {
+            font-size: 1.3em;
+        }
+
+        .mode-desc {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .mode-speed {
+            font-size: 0.8em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .results-container {
+            display: grid;
+            gap: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            flex: 1;
+        }
+
+        .result-badges {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .similarity-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .pagerank-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #4caf50;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .result-url {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+
+        .result-url:hover {
+            text-decoration: underline;
+        }
+
+        .result-description {
+            color: #666;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 15px;
+            color: #666;
+        }
+
+        .examples {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .example-chip {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 5px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .example-chip:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧠 Moteur de Recherche ML/DL</h1>
+            <p class="subtitle">Recherche intelligente avec Intelligence Artificielle</p>
+        </header>
+
+        <div class="search-box">
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <label class="mode-selector-label">⚙️ Mode de recherche :</label>
+                <div class="mode-buttons">
+                    <div class="mode-btn" data-mode="fast">
+                        <div class="mode-title">
+                            <span class="mode-icon">⚡</span>
+                            <span>Fast</span>
+                        </div>
+                        <div class="mode-desc">Bi-encoder</div>
+                        <div class="mode-speed">~50ms</div>
+                    </div>
+                    <div class="mode-btn active" data-mode="balanced">
+                        <div class="mode-title">
+                            <span class="mode-icon">⚖️</span>
+                            <span>Balanced</span>
+                        </div>
+                        <div class="mode-desc">Bi-encoder + BM25</div>
+                        <div class="mode-speed">~80ms</div>
+                    </div>
+                    <div class="mode-btn" data-mode="precise">
+                        <div class="mode-title">
+                            <span class="mode-icon">🎯</span>
+                            <span>Precise</span>
+                        </div>
+                        <div class="mode-desc">+ Cross-encoder</div>
+                        <div class="mode-speed">~150ms</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Input -->
+            <div class="search-input-container">
+                <input type="text" id="searchInput" placeholder="Entrez votre recherche..." />
+                <button class="btn btn-primary" id="searchBtn">🔍 Rechercher</button>
+            </div>
+
+            <!-- Examples -->
+            <div class="examples">
+                <div class="stat-label">💡 Exemples de recherche :</div>
+                <div style="margin-top: 10px;">
+                    <span class="example-chip" onclick="searchExample('machine learning')">Machine Learning</span>
+                    <span class="example-chip" onclick="searchExample('python programming')">Python Programming</span>
+                    <span class="example-chip" onclick="searchExample('artificial intelligence')">Intelligence Artificielle</span>
+                    <span class="example-chip" onclick="searchExample('web development')">Développement Web</span>
+                    <span class="example-chip" onclick="searchExample('data science')">Data Science</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats" style="margin-top: 20px;">
+                <div class="stat-card">
+                    <div class="stat-label">Résultats</div>
+                    <div class="stat-value" id="resultsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Temps</div>
+                    <div class="stat-value" id="queryTime">0ms</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Mode</div>
+                    <div class="stat-value" id="currentMode" style="font-size: 1.2em;">⚖️</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingDiv" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <div>Recherche ML en cours...</div>
+        </div>
+
+        <div id="resultsDiv" class="results-container"></div>
+    </div>
+
+    <script>
+        let currentMode = 'balanced';
+        const modeIcons = { fast: '⚡', balanced: '⚖️', precise: '🎯' };
+
+        // Mode selector
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                document.getElementById('currentMode').textContent = modeIcons[currentMode];
+            });
+        });
+
+        // Recherche
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performSearch();
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+
+        function searchExample(query) {
+            document.getElementById('searchInput').value = query;
+            performSearch();
+        }
+
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            
+            if (!query) {
+                alert('Veuillez entrer une recherche');
+                return;
+            }
+
+            const loadingDiv = document.getElementById('loadingDiv');
+            const resultsDiv = document.getElementById('resultsDiv');
+            const searchBtn = document.getElementById('searchBtn');
+
+            loadingDiv.style.display = 'block';
+            resultsDiv.innerHTML = '';
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        top_k: 20,
+                        threshold: 0.1,  // Seuil plus bas
+                        mode: currentMode,
+                        use_expansion: true
+                    })
+                });
+
+                if (!response.ok) throw new Error('Erreur API');
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                resultsDiv.innerHTML = `
+                    <div class="no-results">
+                        <h2>⚠️ Erreur de connexion</h2>
+                        <p>Impossible de se connecter à l'API ML</p>
+                        <p style="color: #999; margin-top: 10px;">Vérifiez que le serveur est bien lancé</p>
+                    </div>
+                `;
+            } finally {
+                loadingDiv.style.display = 'none';
+                searchBtn.disabled = false;
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('resultsDiv');
+            document.getElementById('resultsCount').textContent = data.count || 0;
+            document.getElementById('queryTime').textContent = `${Math.round(data.query_time * 1000)}ms`;
+
+            if (!data.results || data.results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="no-results">
+                        <h2>🔍 Aucun résultat</h2>
+                        <p>Essayez avec d'autres termes ou changez de mode de recherche</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsDiv.innerHTML = data.results.map((result, idx) => {
+                const similarity = (result.similarity * 100).toFixed(1);
+                const pageRank = (result.page_rank * 100).toFixed(0);
+                
+                return `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div class="result-title">${idx + 1}. ${escapeHtml(result.title || 'Sans titre')}</div>
+                            <div class="result-badges">
+                                <span class="similarity-badge">📊 ${similarity}%</span>
+                                ${pageRank > 0 ? `<span class="pagerank-badge">⭐ ${pageRank}</span>` : ''}
+                            </div>
+                        </div>
+                        <a href="${result.url}" target="_blank" class="result-url">🔗 ${result.url}</a>
+                        <p class="result-description">${escapeHtml((result.description || 'Pas de description').substring(0, 250))}${result.description && result.description.length > 250 ? '...' : ''}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
